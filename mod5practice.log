@@ -1,0 +1,396 @@
+mysql> DROP TABLE IF EXISTS ShowsFlat;
+Query OK, 0 rows affected (0.02 sec)
+  
+mysql> CREATE TABLE ShowsFlat (
+    -> ScheduleID INT PRIMARY KEY,
+    -> HostName VARCHAR(100),
+    -> HostEmail VARCHAR(100),
+    -> Show1Title VARCHAR(150),
+    -> Show1TimeSlot VARCHAR(50),
+    -> Show2Title VARCHAR(150),
+    -> Show2TimeSlot VARCHAR(50)
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+ 
+mysql> INSERT INTO ShowsFlat VALUES
+    -> (1, 'Jordan Betancourt', 'jordan.b@example.com', 'Morning Mix', 'Mon 7am',
+    -> 'Vinyl Vault', 'Wed 9pm'),
+    -> (2, 'Riley Nakamura', 'riley.n@example.com', 'Indie Hour', 'Tue 6pm', NULL,
+    -> NULL),
+    -> (3, 'Jordan Betancourt', 'jordan.b@example.com', 'Sunday Jazz', 'Sun 10am',
+    -> 'Late Night Blues', 'Fri 11pm');
+Query OK, 3 rows affected (0.00 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM ShowsFlat;
++------------+-------------------+----------------------+-------------+---------------+------------------+---------------+
+| ScheduleID | HostName          | HostEmail            | Show1Title  | Show1TimeSlot | Show2Title       | Show2TimeSlot |
++------------+-------------------+----------------------+-------------+---------------+------------------+---------------+
+|          1 | Jordan Betancourt | jordan.b@example.com | Morning Mix | Mon 7am       | Vinyl Vault      | Wed 9pm       |
+|          2 | Riley Nakamura    | riley.n@example.com  | Indie Hour  | Tue 6pm       | NULL             | NULL          |
+|          3 | Jordan Betancourt | jordan.b@example.com | Sunday Jazz | Sun 10am      | Late Night Blues | Fri 11pm      |
++------------+-------------------+----------------------+-------------+---------------+------------------+---------------+
+3 rows in set (0.00 sec)
+
+mysql> CREATE TABLE Shows1NF (
+    -> HostName VARCHAR(100) NOT NULL,
+    -> HostEmail VARCHAR(100) NOT NULL,
+    -> ShowTitle VARCHAR(150) NOT NULL,
+    -> TimeSlot VARCHAR(50),
+    -> PRIMARY KEY (HostEmail, ShowTitle)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+ 
+mysql> INSERT INTO Shows1NF VALUES
+    -> ('Jordan Betancourt', 'jordan.b@example.com', 'Morning Mix', 'Mon 7am'),
+    -> ('Jordan Betancourt', 'jordan.b@example.com', 'Vinyl Vault', 'Wed 9pm'),
+    -> ('Riley Nakamura', 'riley.n@example.com', 'Indie Hour', 'Tue 6pm'),
+    -> ('Jordan Betancourt', 'jordan.b@example.com', 'Sunday Jazz', 'Sun 10am'),
+    -> ('Jordan Betancourt', 'jordan.b@example.com', 'Late Night Blues', 'Fri 11pm');
+Query OK, 5 rows affected (0.02 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM Shows1NF;
++-------------------+----------------------+------------------+----------+
+| HostName          | HostEmail            | ShowTitle        | TimeSlot |
++-------------------+----------------------+------------------+----------+
+| Jordan Betancourt | jordan.b@example.com | Late Night Blues | Fri 11pm |
+| Jordan Betancourt | jordan.b@example.com | Morning Mix      | Mon 7am  |
+| Jordan Betancourt | jordan.b@example.com | Sunday Jazz      | Sun 10am |
+| Jordan Betancourt | jordan.b@example.com | Vinyl Vault      | Wed 9pm  |
+| Riley Nakamura    | riley.n@example.com  | Indie Hour       | Tue 6pm  |
++-------------------+----------------------+------------------+----------+
+5 rows in set (0.00 sec)
+
+mysql> CREATE TABLE Hosts2NF (
+    -> HostID INT PRIMARY KEY,
+    -> HostName VARCHAR(100) NOT NULL,
+    -> HostEmail VARCHAR(100) NOT NULL UNIQUE
+    -> );
+Query OK, 0 rows affected (0.04 sec)
+ 
+mysql> INSERT INTO Hosts2NF VALUES
+    -> (1, 'Jordan Betancourt', 'jordan.b@example.com'),
+    -> (2, 'Riley Nakamura', 'riley.n@example.com');
+Query OK, 2 rows affected (0.01 sec)
+Records: 2  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM Hosts2NF;
++--------+-------------------+----------------------+
+| HostID | HostName          | HostEmail            |
++--------+-------------------+----------------------+
+|      1 | Jordan Betancourt | jordan.b@example.com |
+|      2 | Riley Nakamura    | riley.n@example.com  |
++--------+-------------------+----------------------+
+2 rows in set (0.00 sec)
+
+mysql> CREATE TABLE ShowAssignments2NF (
+    -> AssignmentID INT PRIMARY KEY,
+    -> HostID INT NOT NULL,
+    -> ShowTitle VARCHAR(150) NOT NULL,
+    -> TimeSlot VARCHAR(50),
+    -> FOREIGN KEY (HostID) REFERENCES Hosts2NF(HostID)
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+ 
+mysql> INSERT INTO ShowAssignments2NF VALUES
+    -> (1, 1, 'Morning Mix', 'Mon 7am'),
+    -> (2, 1, 'Vinyl Vault', 'Wed 9pm'),
+    -> (3, 2, 'Indie Hour', 'Tue 6pm'),
+    -> (4, 1, 'Sunday Jazz', 'Sun 10am'),
+    -> (5, 1, 'Late Night Blues', 'Fri 11pm');
+Query OK, 5 rows affected (0.00 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM ShowAssignments2NF;
++--------------+--------+------------------+----------+
+| AssignmentID | HostID | ShowTitle        | TimeSlot |
++--------------+--------+------------------+----------+
+|            1 |      1 | Morning Mix      | Mon 7am  |
+|            2 |      1 | Vinyl Vault      | Wed 9pm  |
+|            3 |      2 | Indie Hour       | Tue 6pm  |
+|            4 |      1 | Sunday Jazz      | Sun 10am |
+|            5 |      1 | Late Night Blues | Fri 11pm |
++--------------+--------+------------------+----------+
+5 rows in set (0.00 sec)
+
+mysql> SELECT h.HostName, h.HostEmail, s.ShowTitle, s.TimeSlot
+    -> FROM ShowAssignments2NF s
+    -> JOIN Hosts2NF h ON s.HostID = h.HostID
+    -> ORDER BY s.AssignmentID;
++-------------------+----------------------+------------------+----------+
+| HostName          | HostEmail            | ShowTitle        | TimeSlot |
++-------------------+----------------------+------------------+----------+
+| Jordan Betancourt | jordan.b@example.com | Morning Mix      | Mon 7am  |
+| Jordan Betancourt | jordan.b@example.com | Vinyl Vault      | Wed 9pm  |
+| Riley Nakamura    | riley.n@example.com  | Indie Hour       | Tue 6pm  |
+| Jordan Betancourt | jordan.b@example.com | Sunday Jazz      | Sun 10am |
+| Jordan Betancourt | jordan.b@example.com | Late Night Blues | Fri 11pm |
++-------------------+----------------------+------------------+----------+
+5 rows in set (0.00 sec)
+
+mysql> CREATE TABLE SponsorsFlat (
+    -> SponsorID INT PRIMARY KEY,
+    -> SponsorName VARCHAR(100),
+    -> ContactPhone VARCHAR(20),
+    -> Ad1Length INT, Ad1Rate DECIMAL(6,2), Ad1AirDate DATE, Ad1AirTime TIME,
+    -> Ad2Length INT, Ad2Rate DECIMAL(6,2), Ad2AirDate DATE, Ad2AirTime TIME,
+    -> Ad3Length INT, Ad3Rate DECIMAL(6,2), Ad3AirDate DATE, Ad3AirTime TIME
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+  
+mysql> INSERT INTO SponsorsFlat VALUES
+    -> (1, 'Lakeside Coffee Co.', '612-555-0142',
+    ->  30, 45.00, '2026-10-05', '07:15:00',
+    ->  30, 45.00, '2026-10-07', '21:30:00',
+    ->  60, 80.00, '2026-10-11', '10:15:00'),
+    -> (2, 'Northloop Bike Shop', '612-555-0187',
+    ->  15, 25.00, '2026-10-06', '18:15:00',
+    ->  NULL, NULL, NULL, NULL,
+    ->  NULL, NULL, NULL, NULL),
+    -> (3, 'Cedar Street Books', '612-555-0119',
+    ->  60, 80.00, '2026-10-09', '23:05:00',
+    ->  15, 25.00, '2026-10-12', '07:45:00',
+    ->  NULL, NULL, NULL, NULL);
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM SponsorsFlat;
++-----------+---------------------+--------------+-----------+---------+------------+------------+-----------+---------+------------+------------+-----------+---------+------------+------------+
+| SponsorID | SponsorName         | ContactPhone | Ad1Length | Ad1Rate | Ad1AirDate | Ad1AirTime | Ad2Length | Ad2Rate | Ad2AirDate | Ad2AirTime | Ad3Length | Ad3Rate | Ad3AirDate | Ad3AirTime |
++-----------+---------------------+--------------+-----------+---------+------------+------------+-----------+---------+------------+------------+-----------+---------+------------+------------+
+|         1 | Lakeside Coffee Co. | 612-555-0142 |        30 |   45.00 | 2026-10-05 | 07:15:00   |        30 |   45.00 | 2026-10-07 | 21:30:00   |        60 |   80.00 | 2026-10-11 | 10:15:00   |
+|         2 | Northloop Bike Shop | 612-555-0187 |        15 |   25.00 | 2026-10-06 | 18:15:00   |      NULL |    NULL | NULL       | NULL       |      NULL |    NULL | NULL       | NULL       |
+|         3 | Cedar Street Books  | 612-555-0119 |        60 |   80.00 | 2026-10-09 | 23:05:00   |        15 |   25.00 | 2026-10-12 | 07:45:00   |      NULL |    NULL | NULL       | NULL       |
++-----------+---------------------+--------------+-----------+---------+------------+------------+-----------+---------+------------+------------+-----------+---------+------------+------------+
+3 rows in set (0.01 sec)
+
+mysql> CREATE TABLE Sponsors1NF (
+    -> SponsorID INT NOT NULL,
+    -> SponsorName VARCHAR(100) NOT NULL,
+    -> ContactPhone VARCHAR(20),
+    -> AirDate DATE NOT NULL,
+    -> AirTime TIME NOT NULL,
+    -> SpotLength INT NOT NULL,
+    -> SpotRate DECIMAL(6,2) NOT NULL,
+    -> PRIMARY KEY (SponsorID, AirDate, AirTime)
+    -> );
+Query OK, 0 rows affected (0.05 sec)
+  
+mysql> INSERT INTO Sponsors1NF
+    -> SELECT SponsorID, SponsorName, ContactPhone, Ad1AirDate, Ad1AirTime, Ad1Length, Ad1Rate
+    -> FROM SponsorsFlat WHERE Ad1Length IS NOT NULL
+    -> UNION ALL
+    -> SELECT SponsorID, SponsorName, ContactPhone, Ad2AirDate, Ad2AirTime, Ad2Length, Ad2Rate
+    -> FROM SponsorsFlat WHERE Ad2Length IS NOT NULL
+    -> UNION ALL
+    -> SELECT SponsorID, SponsorName, ContactPhone, Ad3AirDate, Ad3AirTime, Ad3Length, Ad3Rate
+    -> FROM SponsorsFlat WHERE Ad3Length IS NOT NULL;
+Query OK, 6 rows affected (0.01 sec)
+Records: 6  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM Sponsors1NF ORDER BY SponsorID, AirDate;
++-----------+---------------------+--------------+------------+----------+------------+----------+
+| SponsorID | SponsorName         | ContactPhone | AirDate    | AirTime  | SpotLength | SpotRate |
++-----------+---------------------+--------------+------------+----------+------------+----------+
+|         1 | Lakeside Coffee Co. | 612-555-0142 | 2026-10-05 | 07:15:00 |         30 |    45.00 |
+|         1 | Lakeside Coffee Co. | 612-555-0142 | 2026-10-07 | 21:30:00 |         30 |    45.00 |
+|         1 | Lakeside Coffee Co. | 612-555-0142 | 2026-10-11 | 10:15:00 |         60 |    80.00 |
+|         2 | Northloop Bike Shop | 612-555-0187 | 2026-10-06 | 18:15:00 |         15 |    25.00 |
+|         3 | Cedar Street Books  | 612-555-0119 | 2026-10-09 | 23:05:00 |         60 |    80.00 |
+|         3 | Cedar Street Books  | 612-555-0119 | 2026-10-12 | 07:45:00 |         15 |    25.00 |
++-----------+---------------------+--------------+------------+----------+------------+----------+
+6 rows in set (0.00 sec)
+
+mysql> CREATE TABLE Sponsors2NF (
+    -> SponsorID INT PRIMARY KEY,
+    -> SponsorName VARCHAR(100) NOT NULL,
+    -> ContactPhone VARCHAR(20)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+ 
+mysql> INSERT INTO Sponsors2NF
+    -> SELECT DISTINCT SponsorID, SponsorName, ContactPhone FROM Sponsors1NF;
+Query OK, 3 rows affected (0.12 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+  
+mysql> CREATE TABLE SponsorAds2NF (
+    -> AdID INT AUTO_INCREMENT PRIMARY KEY,
+    -> SponsorID INT NOT NULL,
+    -> AirDate DATE NOT NULL,
+    -> AirTime TIME NOT NULL,
+    -> SpotLength INT NOT NULL,
+    -> SpotRate DECIMAL(6,2) NOT NULL,
+    -> FOREIGN KEY (SponsorID) REFERENCES Sponsors2NF(SponsorID)
+    -> );
+Query OK, 0 rows affected (0.11 sec)
+ 
+mysql> INSERT INTO SponsorAds2NF (SponsorID, AirDate, AirTime, SpotLength, SpotRate)
+    -> SELECT SponsorID, AirDate, AirTime, SpotLength, SpotRate
+    -> FROM Sponsors1NF
+    -> ORDER BY AirDate, AirTime;
+Query OK, 6 rows affected (0.00 sec)
+Records: 6  Duplicates: 0  Warnings: 0
+  
+mysql> SELECT * FROM Sponsors2NF;
++-----------+---------------------+--------------+
+| SponsorID | SponsorName         | ContactPhone |
++-----------+---------------------+--------------+
+|         1 | Lakeside Coffee Co. | 612-555-0142 |
+|         2 | Northloop Bike Shop | 612-555-0187 |
+|         3 | Cedar Street Books  | 612-555-0119 |
++-----------+---------------------+--------------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT * FROM SponsorAds2NF;
++------+-----------+------------+----------+------------+----------+
+| AdID | SponsorID | AirDate    | AirTime  | SpotLength | SpotRate |
++------+-----------+------------+----------+------------+----------+
+|    1 |         1 | 2026-10-05 | 07:15:00 |         30 |    45.00 |
+|    2 |         2 | 2026-10-06 | 18:15:00 |         15 |    25.00 |
+|    3 |         1 | 2026-10-07 | 21:30:00 |         30 |    45.00 |
+|    4 |         3 | 2026-10-09 | 23:05:00 |         60 |    80.00 |
+|    5 |         1 | 2026-10-11 | 10:15:00 |         60 |    80.00 |
+|    6 |         3 | 2026-10-12 | 07:45:00 |         15 |    25.00 |
++------+-----------+------------+----------+------------+----------+
+6 rows in set (0.00 sec)
+
+mysql> CREATE TABLE Sponsors3NF (
+    -> SponsorID INT PRIMARY KEY,
+    -> SponsorName VARCHAR(100) NOT NULL,
+    -> ContactPhone VARCHAR(20)
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+ 
+mysql> CREATE TABLE AdRates3NF (
+    -> SpotLength INT PRIMARY KEY,
+    -> Rate DECIMAL(6,2) NOT NULL
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+ 
+mysql> CREATE TABLE SponsorAds3NF (
+    -> AdID INT PRIMARY KEY,
+    -> SponsorID INT NOT NULL,
+    -> SpotLength INT NOT NULL,
+    -> AirDate DATE NOT NULL,
+    -> AirTime TIME NOT NULL,
+    -> FOREIGN KEY (SponsorID) REFERENCES Sponsors3NF(SponsorID),
+    -> FOREIGN KEY (SpotLength) REFERENCES AdRates3NF(SpotLength)
+    -> );
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> INSERT INTO Sponsors3NF
+    -> SELECT SponsorID, SponsorName, ContactPhone FROM Sponsors2NF;
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+ 
+mysql> INSERT INTO AdRates3NF
+    -> SELECT DISTINCT SpotLength, SpotRate FROM SponsorAds2NF;
+Query OK, 3 rows affected (0.00 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+ 
+mysql> INSERT INTO SponsorAds3NF
+    -> SELECT AdID, SponsorID, SpotLength, AirDate, AirTime FROM SponsorAds2NF;
+Query OK, 6 rows affected (0.00 sec)
+Records: 6  Duplicates: 0  Warnings: 0
+
+mysql> INSERT INTO Sponsors3NF VALUES (4, 'Riverside Vinyl', '612-555-0163');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO AdRates3NF VALUES (90, 110.00);
+Query OK, 1 row affected (0.01 sec)
+ 
+mysql> SELECT * FROM Sponsors3NF;
++-----------+---------------------+--------------+
+| SponsorID | SponsorName         | ContactPhone |
++-----------+---------------------+--------------+
+|         1 | Lakeside Coffee Co. | 612-555-0142 |
+|         2 | Northloop Bike Shop | 612-555-0187 |
+|         3 | Cedar Street Books  | 612-555-0119 |
+|         4 | Riverside Vinyl     | 612-555-0163 |
++-----------+---------------------+--------------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT * FROM AdRates3NF;
++------------+--------+
+| SpotLength | Rate   |
++------------+--------+
+|         15 |  25.00 |
+|         30 |  45.00 |
+|         60 |  80.00 |
+|         90 | 110.00 |
++------------+--------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT * FROM SponsorAds3NF;
++------+-----------+------------+------------+----------+
+| AdID | SponsorID | SpotLength | AirDate    | AirTime  |
++------+-----------+------------+------------+----------+
+|    1 |         1 |         30 | 2026-10-05 | 07:15:00 |
+|    2 |         2 |         15 | 2026-10-06 | 18:15:00 |
+|    3 |         1 |         30 | 2026-10-07 | 21:30:00 |
+|    4 |         3 |         60 | 2026-10-09 | 23:05:00 |
+|    5 |         1 |         60 | 2026-10-11 | 10:15:00 |
+|    6 |         3 |         15 | 2026-10-12 | 07:45:00 |
++------+-----------+------------+------------+----------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT sp.SponsorName, sp.ContactPhone, a.AirDate, a.AirTime, a.SpotLength, r.Rate
+    -> FROM Sponsors3NF sp
+    -> LEFT JOIN SponsorAds3NF a ON a.SponsorID = sp.SponsorID
+    -> LEFT JOIN AdRates3NF r ON r.SpotLength = a.SpotLength
+    -> ORDER BY sp.SponsorID, a.AirDate, a.AirTime;
++---------------------+--------------+------------+----------+------------+-------+
+| SponsorName         | ContactPhone | AirDate    | AirTime  | SpotLength | Rate  |
++---------------------+--------------+------------+----------+------------+-------+
+| Lakeside Coffee Co. | 612-555-0142 | 2026-10-05 | 07:15:00 |         30 | 45.00 |
+| Lakeside Coffee Co. | 612-555-0142 | 2026-10-07 | 21:30:00 |         30 | 45.00 |
+| Lakeside Coffee Co. | 612-555-0142 | 2026-10-11 | 10:15:00 |         60 | 80.00 |
+| Northloop Bike Shop | 612-555-0187 | 2026-10-06 | 18:15:00 |         15 | 25.00 |
+| Cedar Street Books  | 612-555-0119 | 2026-10-09 | 23:05:00 |         60 | 80.00 |
+| Cedar Street Books  | 612-555-0119 | 2026-10-12 | 07:45:00 |         15 | 25.00 |
+| Riverside Vinyl     | 612-555-0163 | NULL       | NULL     |       NULL |  NULL |
++---------------------+--------------+------------+----------+------------+-------+
+7 rows in set (0.00 sec)
+
+mysql> SELECT sp.SponsorName, COUNT(a.AdID) AS AdsPurchased, COALESCE(SUM(r.Rate), 0) AS TotalSpent
+    -> FROM Sponsors3NF sp
+    -> LEFT JOIN SponsorAds3NF a ON a.SponsorID = sp.SponsorID
+    -> LEFT JOIN AdRates3NF r ON r.SpotLength = a.SpotLength
+    -> GROUP BY sp.SponsorID, sp.SponsorName
+    -> ORDER BY sp.SponsorID;
++---------------------+--------------+------------+
+| SponsorName         | AdsPurchased | TotalSpent |
++---------------------+--------------+------------+
+| Lakeside Coffee Co. |            3 |     170.00 |
+| Northloop Bike Shop |            1 |      25.00 |
+| Cedar Street Books  |            2 |     105.00 |
+| Riverside Vinyl     |            0 |       0.00 |
++---------------------+--------------+------------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT sp.SponsorName, a.AirDate, a.AirTime, r.SpotLength, r.Rate
+    -> FROM Sponsors3NF sp
+    -> LEFT JOIN SponsorAds3NF a ON a.SponsorID = sp.SponsorID
+    -> LEFT JOIN AdRates3NF r ON r.SpotLength = a.SpotLength
+    -> UNION
+    -> SELECT sp.SponsorName, a.AirDate, a.AirTime, r.SpotLength, r.Rate
+    -> FROM Sponsors3NF sp
+    -> RIGHT JOIN SponsorAds3NF a ON a.SponsorID = sp.SponsorID
+    -> RIGHT JOIN AdRates3NF r ON r.SpotLength = a.SpotLength
+    -> ORDER BY SponsorName IS NULL, SponsorName, AirDate, AirTime;
++---------------------+------------+----------+------------+--------+
+| SponsorName         | AirDate    | AirTime  | SpotLength | Rate   |
++---------------------+------------+----------+------------+--------+
+| Cedar Street Books  | 2026-10-09 | 23:05:00 |         60 |  80.00 |
+| Cedar Street Books  | 2026-10-12 | 07:45:00 |         15 |  25.00 |
+| Lakeside Coffee Co. | 2026-10-05 | 07:15:00 |         30 |  45.00 |
+| Lakeside Coffee Co. | 2026-10-07 | 21:30:00 |         30 |  45.00 |
+| Lakeside Coffee Co. | 2026-10-11 | 10:15:00 |         60 |  80.00 |
+| Northloop Bike Shop | 2026-10-06 | 18:15:00 |         15 |  25.00 |
+| Riverside Vinyl     | NULL       | NULL     |       NULL |   NULL |
+| NULL                | NULL       | NULL     |         90 | 110.00 |
++---------------------+------------+----------+------------+--------+
+8 rows in set (0.01 sec)
+
+mysql> notee;
