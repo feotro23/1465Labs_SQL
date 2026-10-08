@@ -1,0 +1,146 @@
+mysql> DELIMITER $$
+mysql> CREATE FUNCTION MemberYearsActive(StartDate DATE)
+    -> RETURNS INT
+    -> DETERMINISTIC
+    -> BEGIN
+    -> RETURN TIMESTAMPDIFF(YEAR, StartDate, CURDATE());
+    -> END $$
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> DELIMITER ;
+mysql> SELECT FirstName, LastName, MemberYearsActive(JoinDate) AS YearsActive
+    -> FROM Member;
++-----------+----------+-------------+
+| FirstName | LastName | YearsActive |
++-----------+----------+-------------+
+| Kayla     | Ortiz    |           3 |
+| Dana      | Petrov   |           2 |
+| Miguel    | Alvarez  |           1 |
++-----------+----------+-------------+
+3 rows in set (0.00 sec)
+
+mysql> DELIMITER $$
+mysql> CREATE FUNCTION ClassDiscount(Tier VARCHAR(10))
+    -> RETURNS DECIMAL(4,2)
+    -> DETERMINISTIC
+    -> BEGIN
+    ->     DECLARE Discount DECIMAL(4,2);
+    ->     IF Tier = 'Gold' THEN
+    ->         SET Discount = 0.20;
+    ->     ELSEIF Tier = 'Silver' THEN
+    ->         SET Discount = 0.10;
+    ->     ELSE
+    ->         SET Discount = 0.00;
+    ->     END IF;
+    ->     RETURN Discount;
+    -> END $$
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER ;
+mysql> SELECT FirstName, LastName,
+    ->        ClassDiscount(MemberTier(ClassesAttended)) AS Discount
+    -> FROM Member;
++-----------+----------+----------+
+| FirstName | LastName | Discount |
++-----------+----------+----------+
+| Kayla     | Ortiz    |     0.20 |
+| Dana      | Petrov   |     0.10 |
+| Miguel    | Alvarez  |     0.00 |
++-----------+----------+----------+
+3 rows in set (0.00 sec)
+
+mysql> DELIMITER $$
+mysql> CREATE PROCEDURE AddNewMember(
+    ->     IN p_FirstName VARCHAR(50),
+    ->     IN p_LastName  VARCHAR(50),
+    ->     IN p_JoinDate  DATE
+    -> )
+    -> BEGIN
+    ->     INSERT INTO Member (FirstName, LastName, JoinDate, ClassesAttended)
+    ->     VALUES (p_FirstName, p_LastName, p_JoinDate, 0);
+    -> 
+    ->     SELECT * FROM Member
+    ->     WHERE MemberID = LAST_INSERT_ID();
+    -> END $$
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DELIMITER ;
+mysql> CALL AddNewMember('Drew', 'Page', CURDATE());
++----------+-----------+----------+------------+-----------------+
+| MemberID | FirstName | LastName | JoinDate   | ClassesAttended |
++----------+-----------+----------+------------+-----------------+
+|        4 | Drew      | Page     | 2026-10-08 |               0 |
++----------+-----------+----------+------------+-----------------+
+1 row in set (0.01 sec)
+
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> SELECT FirstName, LastName, ClassesAttended,
+    ->        MemberTier(ClassesAttended) AS Tier
+    -> FROM Member;
++-----------+----------+-----------------+--------+
+| FirstName | LastName | ClassesAttended | Tier   |
++-----------+----------+-----------------+--------+
+| Kayla     | Ortiz    |              33 | Gold   |
+| Dana      | Petrov   |              10 | Silver |
+| Miguel    | Alvarez  |               3 | Bronze |
+| Drew      | Page     |               0 | Bronze |
++-----------+----------+-----------------+--------+
+4 rows in set (0.00 sec)
+
+mysql> DELIMITER $$
+mysql> CREATE PROCEDURE CancelMembership(IN p_MemberID INT)
+    -> BEGIN
+    ->     IF EXISTS (SELECT 1 FROM Member WHERE MemberID = p_MemberID) THEN
+    ->         SELECT FirstName, LastName, MemberTier(ClassesAttended) AS Tier
+    ->         FROM Member
+    ->         WHERE MemberID = p_MemberID;
+    -> 
+    ->         DELETE FROM Member WHERE MemberID = p_MemberID;
+    -> 
+    ->         SELECT CONCAT('Member ', p_MemberID, ' has been removed. Sorry to see you go!') AS Message;
+    ->     ELSE
+    ->         SELECT CONCAT('No member found with ID ', p_MemberID, '. Nothing was deleted.') AS Message;
+    ->     END IF;
+    -> END $$
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> DELIMITER ;
+mysql> CALL CancelMembership(999);
++---------------------------------------------------+
+| Message                                           |
++---------------------------------------------------+
+| No member found with ID 999. Nothing was deleted. |
++---------------------------------------------------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> CALL AddNewMember('Test', 'User', CURDATE());
++----------+-----------+----------+------------+-----------------+
+| MemberID | FirstName | LastName | JoinDate   | ClassesAttended |
++----------+-----------+----------+------------+-----------------+
+|        5 | Test      | User     | 2026-10-08 |               0 |
++----------+-----------+----------+------------+-----------------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> CALL CancelMembership(5);
++-----------+----------+--------+
+| FirstName | LastName | Tier   |
++-----------+----------+--------+
+| Test      | User     | Bronze |
++-----------+----------+--------+
+1 row in set (0.00 sec)
+
++-------------------------------------------------+
+| Message                                         |
++-------------------------------------------------+
+| Member 5 has been removed. Sorry to see you go! |
++-------------------------------------------------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> notee;
