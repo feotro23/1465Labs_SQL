@@ -23,7 +23,7 @@ mysql> SELECT * FROM Book;
 +--------+-------------+----------------+---------------+-------+
 3 rows in set (0.00 sec)
 
-mysql> exit
+mysql> exit;
 mysql> DROP TABLE Book;
 Query OK, 0 rows affected (0.01 sec)
 
