@@ -1,0 +1,76 @@
+mysql> SHOW GRANTS FOR 'tournament_admin'@'localhost';
++---------------------------------------------------------------------------------------------+
+| Grants for tournament_admin@localhost                                                       |
++---------------------------------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `tournament_admin`@`localhost`                                        |
+| GRANT SELECT, INSERT, UPDATE, DELETE ON `circuit_break`.* TO `tournament_admin`@`localhost` |
++---------------------------------------------------------------------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> REVOKE DELETE ON circuit_break.* FROM 'tournament_admin'@'localhost';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SHOW GRANTS FOR 'tournament_admin'@'localhost';
++-------------------------------------------------------------------------------------+
+| Grants for tournament_admin@localhost                                               |
++-------------------------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `tournament_admin`@`localhost`                                |
+| GRANT SELECT, INSERT, UPDATE ON `circuit_break`.* TO `tournament_admin`@`localhost` |
++-------------------------------------------------------------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> ALTER USER 'broadcast_crew'@'localhost' PASSWORD EXPIRE;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> ALTER USER 'tournament_admin'@'localhost' PASSWORD EXPIRE;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SELECT User, password_expired FROM mysql.user WHERE User IN ('broadcast_crew', 'tournament_admin', 'volunteer_helper');
++------------------+------------------+
+| User             | password_expired |
++------------------+------------------+
+| broadcast_crew   | Y                |
+| tournament_admin | Y                |
+| volunteer_helper | Y                |
++------------------+------------------+
+3 rows in set (0.00 sec)
+
+mysql> CREATE USER 'prize_auditor'@'localhost' IDENTIFIED BY 'ITEC1465database';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> GRANT SELECT ON circuit_break.* TO 'prize_auditor'@'localhost';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> SHOW GRANTS FOR 'prize_auditor'@'localhost';
++------------------------------------------------------------------+
+| Grants for prize_auditor@localhost                               |
++------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `prize_auditor`@`localhost`                |
+| GRANT SELECT ON `circuit_break`.* TO `prize_auditor`@`localhost` |
++------------------------------------------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> DROP USER 'broadcast_crew'@'localhost';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> DROP USER 'tournament_admin'@'localhost';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> DROP USER 'volunteer_helper'@'localhost';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> DROP USER 'prize_auditor'@'localhost';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> SHOW GRANTS FOR 'broadcast_crew'@'localhost';
+ERROR 1141 (42000): There is no such grant defined for user 'broadcast_crew' on host 'localhost'
+mysql> SHOW GRANTS FOR 'tournament_admin'@'localhost';
+ERROR 1141 (42000): There is no such grant defined for user 'tournament_admin' on host 'localhost'
+mysql> SHOW GRANTS FOR 'volunteer_helper'@'localhost';
+ERROR 1141 (42000): There is no such grant defined for user 'volunteer_helper' on host 'localhost'
+mysql> SHOW GRANTS FOR 'prize_auditor'@'localhost';
+ERROR 1141 (42000): There is no such grant defined for user 'prize_auditor' on host 'localhost'
+mysql> SELECT User, Host FROM mysql.user WHERE User IN ('broadcast_crew', 'tournament_admin', 'volunteer_helper', 'prize_auditor');
+Empty set (0.00 sec)
+
+mysql> notee;

@@ -1,0 +1,114 @@
+mysql> SOURCE Module9_setup.sql;
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+Query OK, 1 row affected (0.01 sec)
+
+Database changed
+Query OK, 0 rows affected, 1 warning (0.01 sec)
+
+Query OK, 0 rows affected (0.02 sec)
+
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> USE circuit_break;
+Database changed
+mysql> SHOW TABLES;
++-------------------------+
+| Tables_in_circuit_break |
++-------------------------+
+| Player                  |
++-------------------------+
+1 row in set (0.01 sec)
+
+mysql> CREATE USER 'broadcast_crew'@'localhost' IDENTIFIED BY 'ITEC1465database';
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> CREATE USER 'tournament_admin'@'localhost' IDENTIFIED BY 'ITEC1465database';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> CREATE USER 'volunteer_helper'@'localhost' IDENTIFIED BY 'ITEC1465database';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> GRANT ALL PRIVILEGES ON circuit_break.* TO 'broadcast_crew'@'localhost';
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> GRANT SELECT, INSERT, UPDATE, DELETE ON circuit_break.* TO 'tournament_admin'@'localhost';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> GRANT SELECT ON circuit_break.* TO 'volunteer_helper'@'localhost';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> SELECT User, Host FROM mysql.user WHERE User IN ('broadcast_crew', 'tournament_admin', 'volunteer_helper');
++------------------+-----------+
+| User             | Host      |
++------------------+-----------+
+| broadcast_crew   | localhost |
+| tournament_admin | localhost |
+| volunteer_helper | localhost |
++------------------+-----------+
+3 rows in set (0.00 sec)
+
+mysql> SHOW GRANTS FOR 'broadcast_crew'@'localhost';
++---------------------------------------------------------------------------+
+| Grants for broadcast_crew@localhost                                       |
++---------------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `broadcast_crew`@`localhost`                        |
+| GRANT ALL PRIVILEGES ON `circuit_break`.* TO `broadcast_crew`@`localhost` |
++---------------------------------------------------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> SHOW GRANTS FOR 'tournament_admin'@'localhost';
++---------------------------------------------------------------------------------------------+
+| Grants for tournament_admin@localhost                                                       |
++---------------------------------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `tournament_admin`@`localhost`                                        |
+| GRANT SELECT, INSERT, UPDATE, DELETE ON `circuit_break`.* TO `tournament_admin`@`localhost` |
++---------------------------------------------------------------------------------------------+
+2 rows in set (0.01 sec)
+
+mysql> SHOW GRANTS FOR 'volunteer_helper'@'localhost';
++---------------------------------------------------------------------+
+| Grants for volunteer_helper@localhost                               |
++---------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `volunteer_helper`@`localhost`                |
+| GRANT SELECT ON `circuit_break`.* TO `volunteer_helper`@`localhost` |
++---------------------------------------------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'broadcast_crew'@'localhost';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> GRANT SELECT ON circuit_break.* TO 'broadcast_crew'@'localhost';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SHOW GRANTS FOR 'broadcast_crew'@'localhost';
++-------------------------------------------------------------------+
+| Grants for broadcast_crew@localhost                               |
++-------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `broadcast_crew`@`localhost`                |
+| GRANT SELECT ON `circuit_break`.* TO `broadcast_crew`@`localhost` |
++-------------------------------------------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> ALTER USER 'volunteer_helper'@'localhost' PASSWORD EXPIRE;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SHOW GRANTS FOR 'broadcast_crew'@'localhost';
++-------------------------------------------------------------------+
+| Grants for broadcast_crew@localhost                               |
++-------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `broadcast_crew`@`localhost`                |
+| GRANT SELECT ON `circuit_break`.* TO `broadcast_crew`@`localhost` |
++-------------------------------------------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT User, password_expired FROM mysql.user WHERE User = 'volunteer_helper';
++------------------+------------------+
+| User             | password_expired |
++------------------+------------------+
+| volunteer_helper | Y                |
++------------------+------------------+
+1 row in set (0.01 sec)
+
+mysql> notee;
