@@ -1,0 +1,143 @@
+mysql> ALTER TABLE Player ADD COLUMN Disqualified BOOLEAN NOT NULL DEFAULT FALSE;
+Query OK, 0 rows affected (0.02 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> DESCRIBE Player;
++--------------+--------------+------+-----+---------+----------------+
+| Field        | Type         | Null | Key | Default | Extra          |
++--------------+--------------+------+-----+---------+----------------+
+| PlayerID     | int          | NO   | PRI | NULL    | auto_increment |
+| Gamertag     | varchar(50)  | YES  |     | NULL    |                |
+| RealName     | varchar(100) | YES  |     | NULL    |                |
+| Email        | varchar(100) | YES  |     | NULL    |                |
+| Wins         | int          | YES  |     | NULL    |                |
+| Disqualified | tinyint(1)   | NO   |     | 0       |                |
++--------------+--------------+------+-----+---------+----------------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT * FROM Player;
++----------+-------------+---------------+---------------------------+------+--------------+
+| PlayerID | Gamertag    | RealName      | Email                     | Wins | Disqualified |
++----------+-------------+---------------+---------------------------+------+--------------+
+|        1 | BlitzNova   | Jordan Fields | jordan.fields@example.com |   14 |            0 |
+|        2 | ShadowRelay | Casey Nunez   | casey.nunez@example.com   |    9 |            0 |
+|        3 | PixelStorm  | Amara Odom    | amara.odom@example.com    |   21 |            0 |
++----------+-------------+---------------+---------------------------+------+--------------+
+3 rows in set (0.00 sec)
+
+mysql> UPDATE Player SET Disqualified = TRUE WHERE Gamertag = 'ShadowRelay';
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> SELECT Gamertag, Wins, Disqualified FROM Player;
++-------------+------+--------------+
+| Gamertag    | Wins | Disqualified |
++-------------+------+--------------+
+| BlitzNova   |   14 |            0 |
+| ShadowRelay |    9 |            1 |
+| PixelStorm  |   21 |            0 |
++-------------+------+--------------+
+3 rows in set (0.00 sec)
+
+mysql> UPDATE Player SET Disqualified = FALSE WHERE Gamertag = 'ShadowRelay';
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> SELECT Gamertag, Wins, Disqualified FROM Player;
++-------------+------+--------------+
+| Gamertag    | Wins | Disqualified |
++-------------+------+--------------+
+| BlitzNova   |   14 |            0 |
+| ShadowRelay |    9 |            0 |
+| PixelStorm  |   21 |            0 |
++-------------+------+--------------+
+3 rows in set (0.00 sec)
+
+mysql> notee;
+mysql> CREATE VIEW PublicPlayers AS SELECT Gamertag, Wins FROM Player WHERE Disqualified = FALSE;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> SELECT * FROM PublicPlayers;
++-------------+------+
+| Gamertag    | Wins |
++-------------+------+
+| BlitzNova   |   14 |
+| ShadowRelay |    9 |
+| PixelStorm  |   21 |
++-------------+------+
+3 rows in set (0.00 sec)
+
+mysql> CREATE USER 'web_search'@'localhost' IDENTIFIED BY 'W3bSearch2026';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> GRANT SELECT ON circuit_break.PublicPlayers TO 'web_search'@'localhost';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SHOW GRANTS FOR 'web_search'@'localhost';
++-----------------------------------------------------------------------------+
+| Grants for web_search@localhost                                             |
++-----------------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `web_search`@`localhost`                              |
+| GRANT SELECT ON `circuit_break`.`PublicPlayers` TO `web_search`@`localhost` |
++-----------------------------------------------------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> notee;
+mysql> CREATE USER 'broadcast_crew'@'localhost' IDENTIFIED BY 'Overlay2026';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> GRANT SELECT ON circuit_break.PublicPlayers TO 'broadcast_crew'@'localhost';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> SHOW GRANTS FOR 'broadcast_crew'@'localhost';
++---------------------------------------------------------------------------------+
+| Grants for broadcast_crew@localhost                                             |
++---------------------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `broadcast_crew`@`localhost`                              |
+| GRANT SELECT ON `circuit_break`.`PublicPlayers` TO `broadcast_crew`@`localhost` |
++---------------------------------------------------------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> notee;
+mysql> UPDATE Player SET Disqualified = TRUE WHERE Gamertag = 'ShadowRelay';
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> SELECT * FROM PublicPlayers;
++------------+------+
+| Gamertag   | Wins |
++------------+------+
+| BlitzNova  |   14 |
+| PixelStorm |   21 |
++------------+------+
+2 rows in set (0.00 sec)
+
+mysql> UPDATE Player SET Disqualified = FALSE WHERE Gamertag = 'ShadowRelay';
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> SELECT * FROM PublicPlayers;
++-------------+------+
+| Gamertag    | Wins |
++-------------+------+
+| BlitzNova   |   14 |
+| ShadowRelay |    9 |
+| PixelStorm  |   21 |
++-------------+------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT User, Host FROM mysql.user WHERE User IN ('web_search', 'broadcast_crew');
++------------+-----------+
+| User       | Host      |
++------------+-----------+
+| web_search | localhost |
++------------+-----------+
+1 row in set (0.00 sec)
+
+mysql> DROP USER IF EXISTS 'web_search'@'localhost', 'broadcast_crew'@'localhost';
+Query OK, 0 rows affected, 1 warning (0.01 sec)
+
+mysql> SELECT User, Host FROM mysql.user WHERE User IN ('web_search', 'broadcast_crew');
+Empty set (0.00 sec)
+
+mysql> notee;

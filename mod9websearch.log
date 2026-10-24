@@ -1,0 +1,105 @@
+mysql> SELECT CURRENT_USER();
++----------------------+
+| CURRENT_USER()       |
++----------------------+
+| web_search@localhost |
++----------------------+
+1 row in set (0.00 sec)
+
+mysql> SHOW GRANTS;
++-----------------------------------------------------------------------------+
+| Grants for web_search@localhost                                             |
++-----------------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `web_search`@`localhost`                              |
+| GRANT SELECT ON `circuit_break`.`PublicPlayers` TO `web_search`@`localhost` |
++-----------------------------------------------------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT * FROM PublicPlayers WHERE Gamertag = 'BlitzNova';
++-----------+------+
+| Gamertag  | Wins |
++-----------+------+
+| BlitzNova |   14 |
++-----------+------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM PublicPlayers WHERE Gamertag = '' OR '1'='1';
++-------------+------+
+| Gamertag    | Wins |
++-------------+------+
+| BlitzNova   |   14 |
+| ShadowRelay |    9 |
+| PixelStorm  |   21 |
++-------------+------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT * FROM PublicPlayers WHERE Gamertag = '' UNION SELECT RealName, Email FROM Player;
+ERROR 1142 (42000): SELECT command denied to user 'web_search'@'localhost' for table 'Player'
+mysql> SELECT * FROM Player;
+ERROR 1142 (42000): SELECT command denied to user 'web_search'@'localhost' for table 'Player'
+mysql> DELETE FROM PublicPlayers;
+ERROR 1142 (42000): DELETE command denied to user 'web_search'@'localhost' for table 'PublicPlayers'
+mysql> DROP TABLE Player;
+ERROR 1142 (42000): DROP command denied to user 'web_search'@'localhost' for table 'Player'
+mysql> PREPARE search FROM 'SELECT Gamertag, Wins FROM PublicPlayers WHERE Gamertag = ?';
+Query OK, 0 rows affected (0.00 sec)
+Statement prepared
+
+mysql> SET @input = "' OR '1'='1";
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> EXECUTE search USING @input;
+Empty set (0.00 sec)
+
+mysql> SET @input = 'BlitzNova';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> EXECUTE search USING @input;
++-----------+------+
+| Gamertag  | Wins |
++-----------+------+
+| BlitzNova |   14 |
++-----------+------+
+1 row in set (0.00 sec)
+
+mysql> DEALLOCATE PREPARE search;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> notee;
+mysql> SELECT CURRENT_USER();
++--------------------------+
+| CURRENT_USER()           |
++--------------------------+
+| broadcast_crew@localhost |
++--------------------------+
+1 row in set (0.00 sec)
+
+mysql> SHOW GRANTS;
++---------------------------------------------------------------------------------+
+| Grants for broadcast_crew@localhost                                             |
++---------------------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `broadcast_crew`@`localhost`                              |
+| GRANT SELECT ON `circuit_break`.`PublicPlayers` TO `broadcast_crew`@`localhost` |
++---------------------------------------------------------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT * FROM PublicPlayers;
++-------------+------+
+| Gamertag    | Wins |
++-------------+------+
+| BlitzNova   |   14 |
+| ShadowRelay |    9 |
+| PixelStorm  |   21 |
++-------------+------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT RealName, Email FROM Player;
+ERROR 1142 (42000): SELECT command denied to user 'broadcast_crew'@'localhost' for table 'Player'
+mysql> notee;
+mysql> DROP USER 'web_search'@'localhost', 'broadcast_crew'@'localhost';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> SELECT User, Host FROM mysql.user WHERE User IN ('web_search', 'broadcast_crew');
+Empty set (0.00 sec)
+
+mysql> notee;
